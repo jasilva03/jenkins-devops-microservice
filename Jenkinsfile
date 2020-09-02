@@ -40,6 +40,32 @@ pipeline {
             }
         }
 
+        stage('Package') {
+            steps {
+                sh "mvn package -DskipTest"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                //"docker build -t jasilva03/currency-exchange-devops:$env.BUILD_TAG"
+                script {
+                    dockerImage = docker.build("jasilva03/currency-exchange-devops:${env.BUILD_TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', 'dockerHub') {
+                        dockerImage.push();
+                        dockerImage.push('latest');
+                    }
+                }
+            }
+        }
+
     }
     post {
         always {
